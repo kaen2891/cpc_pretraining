@@ -39,8 +39,8 @@ class CPCEncoder(nn.Sequential):
             )
         
     def forward(self, x):        
-        print('input x', x.size())
-        # x: B, D, T
+        #print('input x in encoder', x.size())
+        # x: B, 1, D, T
         
         if self.mode == 'linear':
             x = x.squeeze(1) ## check
@@ -52,7 +52,7 @@ class CPCEncoder(nn.Sequential):
             x = x.transpose(1, 2) # B, T, D
         
         else:
-            x = x.unsqueeze(1)
+            #x = x.squeeze(1)
             x = self.encoder(x)
             x = x.view(x.size(0), x.size(-1), x.size(1) * x.size(2)) # B, T, D
         return x
@@ -83,11 +83,13 @@ class CPCModel(nn.Module):
                     
 
     def forward(self, x):
-        # input shape [B, D, T]
+        # input shape [B, 1, D, T]
         if(self.encoder is not None):
+            #print('going encoder')
             input_encoded = self.encoder(x)
         else:
-            input_encoded = x.transpose(1,2) #bs, seq, channels
+            input_encoded = x.squeeze(1)
+            input_encoded = input_encoded.transpose(1,2) #bs, seq, channels
             input_encoded = self.lin(input_encoded)
         output_rnn, _ = self.rnn(input_encoded) #output_rnn: bs, seq, n_hidden
         if(self.num_classes is None):#pretraining

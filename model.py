@@ -60,24 +60,26 @@ class CPCEncoder(nn.Sequential):
 
 class CPCModel(nn.Module):
     "CPC model"
-    def __init__(self, input_channels, encoder_output_dim, mode=None, n_hidden=512, n_layers=2, mlp=False, lstm=True, num_classes=None):
+    def __init__(self, input_channels, encoder_output_dim, mode=None, n_hidden=512, n_layers=2, lstm=True, num_classes=None):
         super().__init__()
         self.encoder = CPCEncoder(input_channels, encoder_output_dim, mode) if mode is not None else None
         self.encoder_output_dim = encoder_output_dim
         self.n_hidden = n_hidden
         self.n_layers = n_layers
-        self.mlp = mlp
+        #self.mlp = mlp
         
         self.num_classes = num_classes        
         self.rnn = nn.LSTM(self.encoder_output_dim, n_hidden, num_layers=n_layers, batch_first=True) if lstm is True else nn.GRU(self.encoder_output_dim, n_hidden, num_layers=n_layers, batch_first=True)
         if mode is None:
             self.lin = nn.Linear(input_channels, self.n_hidden)
         
+        '''
         if(num_classes is None): #pretraining
             if(mlp):# additional hidden layer as in simclr
                 self.proj = nn.Sequential(nn.Linear(n_hidden, n_hidden),nn.ReLU(inplace=True),nn.Linear(n_hidden, self.encoder_output_dim))
             else:
                 self.proj = nn.Linear(n_hidden, self.encoder_output_dim)
+        '''
                     
 
     def forward(self, x):
@@ -89,7 +91,8 @@ class CPCModel(nn.Module):
             input_encoded = self.lin(input_encoded)
         output_rnn, _ = self.rnn(input_encoded) #output_rnn: bs, seq, n_hidden
         if(self.num_classes is None):#pretraining
-            return input_encoded, self.proj(output_rnn)
+            #return input_encoded, self.proj(output_rnn)
+            return input_encoded, output_rnn
             
     def cpc_loss(self, x, target=None, steps_predicted=5, n_false_negatives=9, negatives_from_same_seq_only=False, eval_acc=False):
         assert(self.num_classes is None)
@@ -161,6 +164,8 @@ def main():
     output, _ = model(data_input)
     print(output.size())
     
+    # steps_predicted = 12 (k=12 in paper)
+    # n_false_negatives = 128 (CPC can process 20480 timesteps. 20480 / 160 = 128)
     loss, acc = model.cpc_loss(data_input, steps_predicted=12, n_false_negatives=128, negatives_from_same_seq_only=True, eval_acc=True)
     print('loss', loss)
     print('acc', acc)

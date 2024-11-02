@@ -5,6 +5,7 @@ import torch.nn as nn
 class DimensionalityReducer(nn.Module):
     def __init__(self):
         super(DimensionalityReducer, self).__init__()
+        '''
         self.cnn_layers = nn.Sequential(
             nn.Conv2d(1, 16, kernel_size=(3, 1), stride=(2, 1), padding=(1, 0)),  # 768 -> 384
             nn.ReLU(),
@@ -20,10 +21,24 @@ class DimensionalityReducer(nn.Module):
             nn.ReLU(),
             nn.Conv2d(64, 64, kernel_size=(2, 1), stride=(2, 1), padding=(2, 0))  # 12 -> 6 (target dimension)
         )
+        '''
+        
+        self.cnn_layers = nn.Sequential(
+            nn.Conv2d(1, 8, kernel_size=(10, 1), stride=(5, 1), padding=(1, 0)),  # 153
+            nn.ReLU(),
+            nn.Conv2d(8, 16, kernel_size=(8, 1), stride=(4, 1), padding=(1, 0)), # 38
+            nn.ReLU(),
+            nn.Conv2d(16, 32, kernel_size=(4, 1), stride=(2, 1), padding=(1, 0)), # 18
+            nn.ReLU(),
+            nn.Conv2d(32, 64, kernel_size=(4, 1), stride=(2, 1), padding=(1, 0)), # 8
+            nn.ReLU(),
+            nn.Conv2d(64, 128, kernel_size=(4, 1), stride=(2, 1), padding=(1, 0)), # 4
+        )
 
     def forward(self, x):
+        print('input', x.size())
         x = self.cnn_layers(x)
-        print(x.size())
+        print('cnn', x.size())
         x = x.view(x.size(0), x.size(1) * x.size(2), x.size(-1))
         #x = x.squeeze(2)  # Remove the redundant dimension to get (batch, 80, time)
         return x

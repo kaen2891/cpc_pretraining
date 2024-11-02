@@ -54,7 +54,7 @@ def get_asr_args():
     parser.add_argument('--ckpt', type=str, default='0')
     
     # ASR model hyperparameters 
-    parser.add_argument('--mode', type=str, default=None, choices=['2dcnn', '1dcnn', 'linear', None])
+    parser.add_argument('--mode', type=str, default=None, choices=['2dcnn', '1dcnn', 'linear', None, '2dcnn_ver2'])
     parser.add_argument('--input_size', type=int, default=768)
     parser.add_argument('--d_model', type=int, default=512)
     parser.add_argument('--anneal', default=1.1, type=float, help='Annealing learning rate every epoch')

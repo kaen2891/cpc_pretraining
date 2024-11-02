@@ -35,7 +35,19 @@ class CPCEncoder(nn.Sequential):
                 nn.ReLU(),
                 nn.Conv2d(64, 64, kernel_size=(3, 1), stride=(2, 1), padding=(1, 0)), # 24 -> 12
                 nn.ReLU(),
-                nn.Conv2d(64, 64, kernel_size=(2, 1), stride=(2, 1), padding=(2, 0))  # 12 -> 6 (target dimension)
+                nn.Conv2d(64, 64, kernel_size=(2, 1), stride=(2, 1), padding=(2, 0))  # 12 -> 8 (target dimension)
+            )
+        elif self.mode == '2dcnn_ver2':
+            self.encoder = nn.Sequential(
+                nn.Conv2d(1, 8, kernel_size=(10, 1), stride=(5, 1), padding=(1, 0)),  # 153
+                nn.ReLU(),
+                nn.Conv2d(8, 16, kernel_size=(8, 1), stride=(4, 1), padding=(1, 0)), # 38
+                nn.ReLU(),
+                nn.Conv2d(16, 32, kernel_size=(4, 1), stride=(2, 1), padding=(1, 0)), # 18
+                nn.ReLU(),
+                nn.Conv2d(32, 64, kernel_size=(4, 1), stride=(2, 1), padding=(1, 0)), # 8
+                nn.ReLU(),
+                nn.Conv2d(64, 128, kernel_size=(4, 1), stride=(2, 1), padding=(1, 0)), # 4
             )
         
     def forward(self, x):        

@@ -148,3 +148,67 @@ class BucketingSampler(Sampler):
 
     def shuffle(self, epoch):
         np.random.shuffle(self.bins)
+        
+
+
+
+############ Dynamic Feature Extractor    
+
+class DynamicFeatureDataset(Dataset):
+    def __init__(self, path_list):
+        super(DynamicFeatureDataset, self).__init__()
+        
+        self.path_list = path_list
+        self.size = len(self.path_list)
+
+    def __getitem__(self, index):
+        feature_path = self.path_list[index]
+        feature, name = self.parse_feature(feature_path)        
+        return feature, name
+
+    def parse_feature(self, feature_path):
+        file_name = os.path.basename(feature_path)        
+        feature = np.load(feature_path)
+        feature = torch.FloatTensor(feature)
+        
+        return feature, file_name
+    
+    def __len__(self):
+        return self.size
+
+# just only one batch
+
+def _collate_feature_fn(batch):
+    batch = sorted(batch, key=lambda sample: sample[0].size(-1), reverse=True)
+    seq_lengths    = [s[0].size(-1) for s in batch]
+    
+    max_seq_size = max(seq_lengths)
+    feat_size = batch[0][0].size(0)
+        
+    batch_size = len(batch)
+    
+
+    seqs = torch.zeros(batch_size, 1, feat_size, max_seq_size)
+    targets = list()
+    
+    for x in range(batch_size):        
+        sample = batch[x]
+        tensor = sample[0]
+        target = sample[1]
+        
+        seq_length = tensor.size(-1)
+        
+        #seqs[x].narrow(0, 0, len(tensor)).copy_(tensor)
+        seqs[x][0, :, :seq_length].copy_(tensor)
+        targets.append(target)
+
+    #seq_lengths = torch.IntTensor(seq_lengths)
+    return seqs, targets
+    
+    
+
+    
+class FeatureDataLoader(DataLoader):
+    def __init__(self, *args, **kwargs):
+        super(FeatureDataLoader, self).__init__(*args, **kwargs)
+        self.collate_fn = _collate_feature_fn
